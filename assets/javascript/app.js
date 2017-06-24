@@ -13,6 +13,9 @@ $(document).ready(function() {
 //Create Firebase Database object
 	var database = firebase.database()
 
+//Display current time
+	$("#current-time").append(moment());
+
 //Remove defauly panel padding
 	$(".panel").css("padding", "0px");
 
@@ -29,13 +32,19 @@ $(document).ready(function() {
 		objectToUpdate.firstTrain = $('#first-train').val().trim();
 		objectToUpdate.frequency = $('#frequency-input').val().trim();
 //Utilize moment.js to convert input field data for first time and frequency, calculate the time remaining until the next train
+		objectToUpdate.timeNow = moment();		
 		objectToUpdate.firstTrainConverted = moment(objectToUpdate.firstTrain, "HH:mm").subtract(10, "years").format("X");
 		objectToUpdate.diffTime = moment().diff(moment.unix(objectToUpdate.firstTrainConverted), "minutes");
 		objectToUpdate.timeLeft = (objectToUpdate.diffTime) % (objectToUpdate.frequency);
-		objectToUpdate.minUntilTrain = (objectToUpdate.frequency) - (objectToUpdate.timeLeft);
+		objectToUpdate.minUntilTrainEntered = (objectToUpdate.frequency) - (objectToUpdate.timeLeft);
+		objectToUpdate.minUntilTrainDisplay = objectToUpdate.timeNow - objectToUpdate.minUntilTrainEntered;
 		objectToUpdate.nextTrainMinutes = moment().add(objectToUpdate.minUntilTrain, "m").format("HH:mm");
 
+
+		console.log(objectToUpdate.timeNow);
+
 		console.log(objectToUpdate);
+
 //Push data to the Firebase database
 		database.ref().push({
 			name: objectToUpdate.name,
@@ -43,7 +52,7 @@ $(document).ready(function() {
 			firstTrain: objectToUpdate.firstTrain,
 			frequency: objectToUpdate.frequency,
 			nextArrival: objectToUpdate.nextTrainMinutes,
-			minAway: objectToUpdate.minUntilTrain
+			minAway: objectToUpdate.minUntilTrainDisplay 
 		});
 	});
 
@@ -52,17 +61,17 @@ $(document).ready(function() {
 	database.ref().on("child_added",function(snapshot){ 
 		var a=snapshot.val();
 
-		var newDiv=$('<div class="col-md-3">');
+		var newDiv=$('<div class="col-xs-3">');
 		newDiv.append(a.name);
-		var newDiv1=$('<div class="col-md-3">');
+		var newDiv1=$('<div class="col-xs-3">');
 		newDiv1.append(a.destination);
-		var newDiv2=$('<div class="col-md-2">');
+		var newDiv2=$('<div class="col-xs-2">');
 		newDiv2.append(a.frequency);
-		var newDiv3=$('<div class="col-md-2">');
+		var newDiv3=$('<div class="col-xs-2">');
 		newDiv3.append(a.nextArrival);
-		var newDiv4=$('<div class="col-md-2">');
-		newDiv4.append(a.minAway);		
-		
+		var newDiv4=$('<div class="col-xs-2">');
+		newDiv4.append(a.minAway);
+
 
 		var superDiv=$('<div class="row">');
 		superDiv.append(newDiv);
