@@ -31,17 +31,6 @@ $(document).ready(function() {
 		objectToUpdate.destination = $('#destination-input').val().trim();
 		objectToUpdate.firstTrain = $('#first-train').val().trim();
 		objectToUpdate.frequency = $('#frequency-input').val().trim();
-//Utilize moment.js to convert input field data for first time and frequency, calculate the time remaining until the next train
-		objectToUpdate.timeNow = moment();		
-		objectToUpdate.firstTrainConverted = moment(objectToUpdate.firstTrain, "HH:mm").subtract(10, "years").format("X");
-		objectToUpdate.diffTime = moment().diff(moment.unix(objectToUpdate.firstTrainConverted), "minutes");
-		objectToUpdate.timeLeft = (objectToUpdate.diffTime) % (objectToUpdate.frequency);
-		objectToUpdate.minUntilTrainEntered = (objectToUpdate.frequency) - (objectToUpdate.timeLeft);
-		objectToUpdate.minUntilTrainDisplay = objectToUpdate.timeNow - objectToUpdate.minUntilTrainEntered;
-		objectToUpdate.nextTrainMinutes = moment().add(objectToUpdate.minUntilTrain, "m").format("HH:mm");
-
-
-		console.log(objectToUpdate.timeNow);
 
 		console.log(objectToUpdate);
 
@@ -51,16 +40,19 @@ $(document).ready(function() {
 			destination: objectToUpdate.destination,
 			firstTrain: objectToUpdate.firstTrain,
 			frequency: objectToUpdate.frequency,
-			nextArrival: objectToUpdate.nextTrainMinutes,
-			minAway: objectToUpdate.minUntilTrainDisplay 
 		});
 	});
-
 
 //Append data from the Firebase database to the display divs at the top of the page
 	database.ref().on("child_added",function(snapshot){ 
 		var a=snapshot.val();
-
+//moment.js time calculations for next train values
+		var firstTrainConverted = moment(a.firstTrain, "HH:mm").subtract(10, "years").format("X");
+		var diffTime = moment().diff(moment.unix(firstTrainConverted), "minutes");
+		var timeLeft = diffTime % a.frequency;
+		var minUntilTrain = a.frequency - timeLeft
+		var nextTrainMinutes = moment().add(minUntilTrain, "m").format("HH:mm");
+//displaying values into div at the top of the page
 		var newDiv=$('<div class="col-xs-3">');
 		newDiv.append(a.name);
 		var newDiv1=$('<div class="col-xs-3">');
@@ -68,9 +60,9 @@ $(document).ready(function() {
 		var newDiv2=$('<div class="col-xs-2">');
 		newDiv2.append(a.frequency);
 		var newDiv3=$('<div class="col-xs-2">');
-		newDiv3.append(a.nextArrival);
+		newDiv3.append(nextTrainMinutes);
 		var newDiv4=$('<div class="col-xs-2">');
-		newDiv4.append(a.minAway);
+		newDiv4.append(minUntilTrain);
 
 
 		var superDiv=$('<div class="row">');
